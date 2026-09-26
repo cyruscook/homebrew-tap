@@ -13,6 +13,11 @@ tap "cyruscook/tap"
 brew "<formula>"
 ```
 
+## CloudCover
+
+Install the CloudCover CLI with `brew install cyruscook/tap/cloudcover`.
+Run `cloudcover --help` to see its usage.
+
 ## Documentation
 
 `brew help`, `man brew` or check [Homebrew's documentation](https://docs.brew.sh).

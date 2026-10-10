@@ -1,7 +1,6 @@
 class Cloudcover < Formula
   desc "Analyze cloud SDK usage and generate permission policies"
   homepage "https://github.com/cyruscook/cloudcover"
-  version "0.1.9"
   license "MIT"
   version_scheme 1
 
@@ -18,6 +17,7 @@ class Cloudcover < Formula
     end
     on_intel do
       url "https://github.com/cyruscook/cloudcover/releases/download/cloudcover-cli-v0.1.9/cloudcover-cli-x86_64-apple-darwin.tar.gz"
+      version "0.1.9"
       sha256 "bb5705378f12a1dca3f4c06da83b27d2a43e79feebcec57aab3b4755fc0a5718"
     end
   end
@@ -29,6 +29,7 @@ class Cloudcover < Formula
     end
     on_intel do
       url "https://github.com/cyruscook/cloudcover/releases/download/cloudcover-cli-v0.1.9/cloudcover-cli-x86_64-unknown-linux-gnu.tar.gz"
+      version "0.1.9"
       sha256 "153361a287b954da546646ccaa1830e694a18d70b3ed0a71077bbb89f03e8d9c"
     end
   end

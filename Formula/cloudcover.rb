@@ -1,27 +1,35 @@
 class Cloudcover < Formula
   desc "Analyze cloud SDK usage and generate permission policies"
   homepage "https://github.com/cyruscook/cloudcover"
+  version "0.1.9"
   license "MIT"
+  version_scheme 1
+
+  livecheck do
+    url :homepage
+    regex(/^cloudcover-cli-v(\d+(?:\.\d+)+)$/i)
+    strategy :git
+  end
 
   on_macos do
     on_arm do
-      url "https://github.com/cyruscook/cloudcover/releases/download/cloudcover-cli-v0.1.4/cloudcover-cli-aarch64-apple-darwin.tar.gz"
-      sha256 "bf882ea65dec9c8b02ff7ac8d2d26dd594e354339ff3547a2d2f9d1bd2751f68"
+      url "https://github.com/cyruscook/cloudcover/releases/download/cloudcover-cli-v0.1.9/cloudcover-cli-aarch64-apple-darwin.tar.gz"
+      sha256 "1864feccf5da712d738d78959296d9cffba5dd318916c177ef5eaca7d178db81"
     end
     on_intel do
-      url "https://github.com/cyruscook/cloudcover/releases/download/cloudcover-cli-v0.1.4/cloudcover-cli-x86_64-apple-darwin.tar.gz"
-      sha256 "fa21a59d5b1267ac9d9cf0cdbea5822ecc34000e54fb6e5264c96d8f2010f121"
+      url "https://github.com/cyruscook/cloudcover/releases/download/cloudcover-cli-v0.1.9/cloudcover-cli-x86_64-apple-darwin.tar.gz"
+      sha256 "bb5705378f12a1dca3f4c06da83b27d2a43e79feebcec57aab3b4755fc0a5718"
     end
   end
 
   on_linux do
     on_arm do
-      url "https://github.com/cyruscook/cloudcover/releases/download/cloudcover-cli-v0.1.4/cloudcover-cli-aarch64-unknown-linux-gnu.tar.gz"
-      sha256 "6399a9ba3595d7bb05da0857d2ab3c9e8f1f3fb13d51deb885fa2c113759cbe0"
+      url "https://github.com/cyruscook/cloudcover/releases/download/cloudcover-cli-v0.1.9/cloudcover-cli-aarch64-unknown-linux-gnu.tar.gz"
+      sha256 "2141ff7fba3cd9efdf4e430438f0ade81585663b2bdbf897de5cf0d89ebf6db7"
     end
     on_intel do
-      url "https://github.com/cyruscook/cloudcover/releases/download/cloudcover-cli-v0.1.4/cloudcover-cli-x86_64-unknown-linux-gnu.tar.gz"
-      sha256 "b55c3bba01531cf2fdfc7b17c2df73dda6c650e496c2753d24f68df50576d476"
+      url "https://github.com/cyruscook/cloudcover/releases/download/cloudcover-cli-v0.1.9/cloudcover-cli-x86_64-unknown-linux-gnu.tar.gz"
+      sha256 "153361a287b954da546646ccaa1830e694a18d70b3ed0a71077bbb89f03e8d9c"
     end
   end
 

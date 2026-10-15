@@ -1,5 +1,4 @@
-# brew tap-new uses this file to generate an autobump workflow for the new tap
-name: brew bump
+name: Bump CloudCover
 
 on:
   push:
@@ -7,11 +6,17 @@ on:
       - main
     paths:
       - .github/workflows/autobump.yml
+      - .github/scripts/bump-cloudcover.py
+  workflow_dispatch:
   schedule:
     # Every day at 19:55 UTC
     - cron: 55 19 * * *
 
 permissions: {}
+
+concurrency:
+  group: cloudcover-autobump
+  cancel-in-progress: false
 
 defaults:
   run:
@@ -27,15 +32,31 @@ jobs:
       - name: Set up Homebrew
         id: set-up-homebrew
         uses: Homebrew/actions/setup-homebrew@e99025eb970cfa124b8284a35463d87426917478 # 2026.09.28.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up git
         id: git_setup
         uses: Homebrew/actions/git-user-config@e99025eb970cfa124b8284a35463d87426917478 # 2026.09.28.1
 
-      - name: Bump formulae
+      - name: Bump all CloudCover platforms
         env:
-          HOMEBREW_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          HOMEBREW_GIT_COMMITTER_NAME: ${{ steps.git_setup.outputs.name }}
-          HOMEBREW_GIT_COMMITTER_EMAIL: ${{ steps.git_setup.outputs.email }}
-          TAP_NAME: ${{ steps.set-up-homebrew.outputs.tap-name }}
-        run: brew bump --no-fork --open-pr --formulae --bump-synced --tap="$TAP_NAME"
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api --paginate --slurp repos/cyruscook/cloudcover/releases > "$RUNNER_TEMP/releases.json"
+          version=$(python3 .github/scripts/bump-cloudcover.py < "$RUNNER_TEMP/releases.json")
+          if git diff --quiet -- Formula/cloudcover.rb; then
+            exit 0
+          fi
+          branch="bump-cloudcover-$version"
+          if [[ -n "$(gh pr list --head "$branch" --state open --json number --jq '.[].number')" ]]; then
+            exit 0
+          fi
+          brew style Formula/cloudcover.rb
+          brew audit --strict cyruscook/tap/cloudcover
+          git switch -c "$branch"
+          git add Formula/cloudcover.rb
+          git commit -m "cloudcover $version"
+          git push origin "$branch"
+          gh pr create --base main --head "$branch" --title "cloudcover $version" \
+            --body "Update all four platform archives and SHA-256 checksums from the CloudCover CLI release asset metadata."

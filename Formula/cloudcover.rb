@@ -12,25 +12,25 @@ class Cloudcover < Formula
 
   on_macos do
     on_arm do
-      url "https://github.com/cyruscook/cloudcover/releases/download/cloudcover-cli-v0.1.9/cloudcover-cli-aarch64-apple-darwin.tar.gz"
-      sha256 "1864feccf5da712d738d78959296d9cffba5dd318916c177ef5eaca7d178db81"
+      url "https://github.com/cyruscook/cloudcover/releases/download/cloudcover-cli-v0.2.0/cloudcover-cli-aarch64-apple-darwin.tar.gz"
+      sha256 "ef41278661d37d88007a0249c1fe00679413b6bcb00c91635ee0e930d672f988"
     end
     on_intel do
-      url "https://github.com/cyruscook/cloudcover/releases/download/cloudcover-cli-v0.1.9/cloudcover-cli-x86_64-apple-darwin.tar.gz"
-      version "0.1.9"
-      sha256 "bb5705378f12a1dca3f4c06da83b27d2a43e79feebcec57aab3b4755fc0a5718"
+      url "https://github.com/cyruscook/cloudcover/releases/download/cloudcover-cli-v0.2.0/cloudcover-cli-x86_64-apple-darwin.tar.gz"
+      version "0.2.0"
+      sha256 "1a6013ffaab8f4771bbe943618e04e7808ae60cf72dfe208e0ae27dfe4200d26"
     end
   end
 
   on_linux do
     on_arm do
-      url "https://github.com/cyruscook/cloudcover/releases/download/cloudcover-cli-v0.1.9/cloudcover-cli-aarch64-unknown-linux-gnu.tar.gz"
-      sha256 "2141ff7fba3cd9efdf4e430438f0ade81585663b2bdbf897de5cf0d89ebf6db7"
+      url "https://github.com/cyruscook/cloudcover/releases/download/cloudcover-cli-v0.2.0/cloudcover-cli-aarch64-unknown-linux-gnu.tar.gz"
+      sha256 "e46d23028dd00ebaf27e8058c8cc4da5ed78e8c0a86d5d15befc0c93acfb9d5e"
     end
     on_intel do
-      url "https://github.com/cyruscook/cloudcover/releases/download/cloudcover-cli-v0.1.9/cloudcover-cli-x86_64-unknown-linux-gnu.tar.gz"
-      version "0.1.9"
-      sha256 "153361a287b954da546646ccaa1830e694a18d70b3ed0a71077bbb89f03e8d9c"
+      url "https://github.com/cyruscook/cloudcover/releases/download/cloudcover-cli-v0.2.0/cloudcover-cli-x86_64-unknown-linux-gnu.tar.gz"
+      version "0.2.0"
+      sha256 "051060193a1770640233f94a34ffac28d82a16c5a2cd3577750d1216d1314a2d"
     end
   end
 

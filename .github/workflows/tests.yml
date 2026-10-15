@@ -14,6 +14,17 @@ defaults:
     shell: bash -xeuo pipefail {0}
 
 jobs:
+  autobump-tests:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@e99025eb970cfa124b8284a35463d87426917478 # 2026.09.28.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - run: python3 -m unittest discover -s .github/scripts -v
+
   test-bot:
     strategy:
       matrix:

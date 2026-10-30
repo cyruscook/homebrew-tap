@@ -7,6 +7,7 @@ on:
     paths:
       - .github/workflows/autobump.yml
       - .github/scripts/bump-cloudcover.py
+      - .github/scripts/publish-cloudcover-bump.sh
   workflow_dispatch:
   schedule:
     # Every day at 19:55 UTC
@@ -48,15 +49,4 @@ jobs:
           if git diff --quiet -- Formula/cloudcover.rb; then
             exit 0
           fi
-          branch="bump-cloudcover-$version"
-          if [[ -n "$(gh pr list --head "$branch" --state open --json number --jq '.[].number')" ]]; then
-            exit 0
-          fi
-          brew style Formula/cloudcover.rb
-          brew audit --strict cyruscook/tap/cloudcover
-          git switch -c "$branch"
-          git add Formula/cloudcover.rb
-          git commit -m "cloudcover $version"
-          git push origin "$branch"
-          gh pr create --base main --head "$branch" --title "cloudcover $version" \
-            --body "Update all four platform archives and SHA-256 checksums from the CloudCover CLI release asset metadata."
+          bash .github/scripts/publish-cloudcover-bump.sh "$version"

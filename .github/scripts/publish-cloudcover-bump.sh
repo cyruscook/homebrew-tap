@@ -23,7 +23,8 @@ if [[ -n "$remote_sha" ]]; then
     echo "Existing $branch has different formula contents; inspect it before retrying." >&2
     exit 1
   fi
-  if [[ -n "$(git diff --name-only "HEAD...$remote_ref" -- . ':!Formula/cloudcover.rb')" ]]; then
+  unrelated_changes="$(git diff --name-only "HEAD...$remote_ref" -- . ':!Formula/cloudcover.rb')"
+  if [[ -n "$unrelated_changes" ]]; then
     echo "Existing $branch contains unrelated changes; inspect it before retrying." >&2
     exit 1
   fi

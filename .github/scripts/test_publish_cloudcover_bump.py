@@ -124,6 +124,22 @@ fi
         self.assertIn("unrelated changes", result.stderr)
         self.assertNotIn("gh pr create", self.log.read_text())
 
+    def test_missing_common_history_stops_before_pull_request_creation(self):
+        self.formula.write_text("old formula\n")
+        self.run_git("switch", "--orphan", BRANCH)
+        self.formula.parent.mkdir(exist_ok=True)
+        self.formula.write_text("new formula\n")
+        self.run_git("add", ".")
+        self.run_git("commit", "-m", "unrelated history")
+        self.run_git("push", "origin", BRANCH)
+        head = self.remote_head()
+        self.run_git("switch", "main")
+        self.formula.write_text("new formula\n")
+        result = self.publish()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(self.remote_head(), head)
+        self.assertNotIn("gh pr create", self.log.read_text())
+
     def test_failed_pr_creation_can_be_retried_without_non_fast_forward_push(self):
         failed = self.publish(CREATE_EXIT="1")
         self.assertNotEqual(failed.returncode, 0)

@@ -1,0 +1,3 @@
+# Homebrew style uses this tap-local config instead of its own variable allowlist.
+config-variables:
+  - HOMEBREW_TAP_UPDATER_APP_CLIENT_ID

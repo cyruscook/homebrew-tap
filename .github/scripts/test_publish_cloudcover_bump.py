@@ -57,8 +57,8 @@ fi
         return subprocess.run(["git", *args], cwd=cwd or self.checkout, env=self.env,
                               text=True, capture_output=True, check=True)
 
-    def publish(self, **variables):
-        return subprocess.run(["bash", str(SCRIPT), "0.2.3"], cwd=self.checkout,
+    def publish(self, *arguments, **variables):
+        return subprocess.run(["bash", str(SCRIPT), "0.2.3", *arguments], cwd=self.checkout,
                               env=dict(self.env, **variables), text=True, capture_output=True)
 
     def remote_head(self):
@@ -81,7 +81,7 @@ fi
         result = self.publish()
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertNotEqual(self.remote_head(), self.base)
-        self.assertIn("gh pr create --base main --head " + BRANCH, self.log.read_text())
+        self.assertIn("gh pr create --draft --base main --head " + BRANCH, self.log.read_text())
 
     def test_reuses_orphan_branch_without_another_commit_or_push(self):
         head = self.seed_branch()
@@ -151,6 +151,92 @@ fi
         self.assertEqual(retried.returncode, 0, retried.stderr)
         self.assertEqual(self.remote_head(), head)
         self.assertIn("Reusing existing", retried.stdout)
+
+    def test_prepare_does_not_push_or_create_pr_and_publish_skips_audit(self):
+        output = self.root / "outputs"
+        result = self.publish("--prepare", GITHUB_OUTPUT=str(output))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("ready=true", output.read_text())
+        sha = output.read_text().split("sha=", 1)[1].strip()
+        self.assertEqual(self.run_git("ls-remote", "--heads", "origin", BRANCH).stdout, "")
+        self.assertNotIn("gh pr create", self.log.read_text())
+        self.log.write_text("")
+        result = self.publish("--publish", sha, SOURCE_SHA=self.base)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.remote_head(), sha)
+        self.assertNotIn("brew ", self.log.read_text())
+        self.assertIn("gh pr create --draft", self.log.read_text())
+
+    def test_prepare_reuses_orphan_branch_before_publication(self):
+        head = self.seed_branch()
+        output = self.root / "outputs"
+        result = self.publish("--prepare", GITHUB_OUTPUT=str(output))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("sha=" + head, output.read_text())
+        self.assertEqual(self.remote_head(), head)
+        self.assertNotIn("gh pr create", self.log.read_text())
+
+    def test_unrelated_staged_changes_stop_before_commit_or_push(self):
+        (self.checkout / "unrelated.txt").write_text("unrelated")
+        self.run_git("add", "unrelated.txt")
+        result = self.publish()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(self.run_git("rev-parse", "HEAD").stdout.strip(), self.base)
+        self.assertNotIn("gh pr create", self.log.read_text())
+
+    def test_untracked_changes_stop_before_commit_or_push(self):
+        (self.checkout / "unrelated.txt").write_text("untracked")
+        result = self.publish()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(self.run_git("rev-parse", "HEAD").stdout.strip(), self.base)
+        self.assertNotIn("gh pr create", self.log.read_text())
+
+    def test_publish_refuses_changed_remote_without_overwriting_it(self):
+        head = self.seed_branch()
+        output = self.root / "outputs"
+        result = self.publish("--prepare", GITHUB_OUTPUT=str(output))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.formula.write_text("old formula\n")
+        self.run_git("switch", BRANCH)
+        self.formula.write_text("newer remote formula\n")
+        self.run_git("add", ".")
+        self.run_git("commit", "-m", "concurrent update")
+        self.run_git("push", "origin", BRANCH)
+        newer = self.remote_head()
+        self.run_git("switch", "main")
+        self.formula.write_text("new formula\n")
+        result = self.publish("--publish", head, SOURCE_SHA=self.base)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("changed after preparation", result.stderr)
+        self.assertEqual(self.remote_head(), newer)
+        self.assertNotIn("gh pr create", self.log.read_text())
+
+    def test_pr_created_between_prepare_and_publish_is_a_noop(self):
+        output = self.root / "outputs"
+        result = self.publish("--prepare", GITHUB_OUTPUT=str(output))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        sha = output.read_text().split("sha=", 1)[1].strip()
+        result = self.publish("--publish", sha, SOURCE_SHA=self.base, EXISTING_PR="42")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertNotIn("gh pr create", self.log.read_text())
+
+    def test_reuses_formula_only_branch_after_main_changes(self):
+        head = self.seed_branch()
+        self.formula.write_text("old formula\n")
+        (self.checkout / "workflow.yml").write_text("new workflow")
+        self.run_git("add", ".")
+        self.run_git("commit", "-m", "advance main")
+        self.formula.write_text("new formula\n")
+        result = self.publish()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.remote_head(), head)
+
+    def test_audit_failure_stops_before_commit_or_push(self):
+        self.write_mock("brew", "exit 1\n")
+        result = self.publish()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(self.run_git("rev-parse", "HEAD").stdout.strip(), self.base)
+        self.assertNotIn("gh pr create", self.log.read_text())
 
 
 if __name__ == "__main__":

@@ -8,6 +8,7 @@ on:
       - .github/workflows/autobump.yml
       - .github/scripts/bump-cloudcover.py
       - .github/scripts/publish-cloudcover-bump.sh
+      - .github/scripts/validate-cloudcover-publication.py
   workflow_dispatch:
   schedule:
     # Every day at 19:55 UTC
@@ -21,32 +22,72 @@ concurrency:
 
 defaults:
   run:
-    shell: bash -xeuo pipefail {0}
+    shell: bash -euo pipefail {0}
 
 jobs:
   autobump:
+    name: Validate and publish CloudCover bump
+    # The environment must allow only main branches, with no tag rules.
+    if: github.repository == 'cyruscook/homebrew-tap' && github.ref == 'refs/heads/main'
+    environment: homebrew-tap-updater
+    timeout-minutes: 30
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      pull-requests: write
+      contents: read # Public checkout/release metadata; publication uses the App.
+      pull-requests: read # Find an existing PR before minting write credentials.
     steps:
       - name: Set up Homebrew
         id: set-up-homebrew
         uses: Homebrew/actions/setup-homebrew@ceec4e8419bb3c97ce96e9dda7738499ed5f869d # 2026.11.14.1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+        # Public checkout: omit token to avoid a persistent Git auth header.
 
       - name: Set up git
         id: git_setup
         uses: Homebrew/actions/git-user-config@ceec4e8419bb3c97ce96e9dda7738499ed5f869d # 2026.11.14.1
 
-      - name: Bump all CloudCover platforms
+      - name: Test autobump helpers
+        run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s .github/scripts -v
+
+      - name: Prepare and validate all CloudCover platforms
+        id: prepare
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_SHA: ${{ github.sha }}
+          PYTHONDONTWRITEBYTECODE: '1'
         run: |
           gh api --paginate --slurp repos/cyruscook/cloudcover/releases > "$RUNNER_TEMP/releases.json"
           version=$(python3 .github/scripts/bump-cloudcover.py < "$RUNNER_TEMP/releases.json")
           if git diff --quiet -- Formula/cloudcover.rb; then
             exit 0
           fi
-          bash .github/scripts/publish-cloudcover-bump.sh "$version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          bash .github/scripts/publish-cloudcover-bump.sh "$version" --prepare
+
+      - name: Create repository-scoped publisher token
+        if: steps.prepare.outputs.ready == 'true'
+        id: publisher-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: ${{ vars.HOMEBREW_TAP_UPDATER_APP_CLIENT_ID }}
+          private-key: ${{ secrets.HOMEBREW_TAP_UPDATER_APP_PRIVATE_KEY }}
+          owner: cyruscook
+          repositories: homebrew-tap
+          permission-contents: write
+          permission-pull-requests: write
+
+      - name: Publish validated bump and draft PR
+        if: steps.prepare.outputs.ready == 'true'
+        env:
+          GH_TOKEN: ${{ steps.publisher-token.outputs.token }}
+          SOURCE_SHA: ${{ github.sha }}
+          VERSION: ${{ steps.prepare.outputs.version }}
+          PUBLICATION_SHA: ${{ steps.prepare.outputs.sha }}
+          # Read the token from the process environment, never a Git URL/config file.
+          GIT_CONFIG_COUNT: '3'
+          GIT_CONFIG_KEY_0: credential.helper
+          GIT_CONFIG_VALUE_0: ''
+          GIT_CONFIG_KEY_1: credential.helper
+          GIT_CONFIG_VALUE_1: '!gh auth git-credential'
+          GIT_CONFIG_KEY_2: http.https://github.com/.extraheader
+          GIT_CONFIG_VALUE_2: ''
+        run: bash .github/scripts/publish-cloudcover-bump.sh "$VERSION" --publish "$PUBLICATION_SHA"

@@ -18,6 +18,8 @@ brew "<formula>"
 Install the CloudCover CLI with `brew install cyruscook/tap/cloudcover`.
 Run `cloudcover --help` to see its usage.
 
+Autobump publication setup and recovery: [dedicated publisher App](docs/autobump-app.md).
+
 ## Documentation
 
 `brew help`, `man brew` or check [Homebrew's documentation](https://docs.brew.sh).

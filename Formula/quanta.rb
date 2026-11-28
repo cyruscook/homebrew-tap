@@ -1,11 +1,21 @@
 class Quanta < Formula
   desc "Develop and edit photographs through a CLI and an MCP server"
   homepage "https://github.com/cyruscook/quanta"
-  url "https://github.com/cyruscook/quanta/releases/download/v1.0.1/quanta-1.0.1-linux-x86_64.tar.gz"
-  sha256 "9e5df39ee8bfe689cbbc76dc58328edd711054eb2fa5744a5af439414ad791c7"
+  if OS.mac?
+    url "https://github.com/cyruscook/quanta/releases/download/v1.0.1/quanta-1.0.1-macos-arm64.tar.gz"
+    sha256 "f384a49065c639755d3f9e1eb1961edcb6e03535b242e687ca07b1a41af9e7ce"
+  else
+    url "https://github.com/cyruscook/quanta/releases/download/v1.0.1/quanta-1.0.1-linux-x86_64.tar.gz"
+    sha256 "9e5df39ee8bfe689cbbc76dc58328edd711054eb2fa5744a5af439414ad791c7"
+  end
 
-  depends_on arch: :x86_64
-  depends_on :linux
+  on_macos do
+    depends_on arch: :arm64
+  end
+
+  on_linux do
+    depends_on arch: :x86_64
+  end
 
   def install
     bin.install "quanta", "quanta-mcp"

@@ -1,8 +1,8 @@
 class Quanta < Formula
   desc "Develop and edit photographs through a CLI and an MCP server"
   homepage "https://github.com/cyruscook/quanta"
-  url "https://github.com/cyruscook/quanta/releases/download/v1.0.0/quanta-1.0.0-linux-x86_64.tar.gz"
-  sha256 "829cc85c1b04a0bd00de6c745f8ec910b0f6ccd337206edbaf820b01fea495a4"
+  url "https://github.com/cyruscook/quanta/releases/download/v1.0.1/quanta-1.0.1-linux-x86_64.tar.gz"
+  sha256 "9e5df39ee8bfe689cbbc76dc58328edd711054eb2fa5744a5af439414ad791c7"
 
   depends_on arch: :x86_64
   depends_on :linux

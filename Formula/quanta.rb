@@ -20,7 +20,7 @@ class Quanta < Formula
         "protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"homebrew","version":"1"}
       }}
     JSON
-    assert_match '"name":"quanta-mcp"', pipe_output("#{bin}/quanta-mcp", request.gsub("\n", "") + "\n", 0)
+    assert_match '"name":"quanta-mcp"', pipe_output("#{bin}/quanta-mcp", request.delete("\n") + "\n", 0)
     assert_path_exists pkgshare/"quanta-#{version}-source.tar.gz"
   end
 end

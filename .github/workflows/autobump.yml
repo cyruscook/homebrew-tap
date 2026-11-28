@@ -38,12 +38,12 @@ jobs:
     steps:
       - name: Set up Homebrew
         id: set-up-homebrew
-        uses: Homebrew/actions/setup-homebrew@ceec4e8419bb3c97ce96e9dda7738499ed5f869d # 2026.11.14.1
+        uses: Homebrew/actions/setup-homebrew@61b401267256bb9c047d6d1481b176d5772a0ba7 # 2026.11.23.1
         # Public checkout: omit token to avoid a persistent Git auth header.
 
       - name: Set up git
         id: git_setup
-        uses: Homebrew/actions/git-user-config@ceec4e8419bb3c97ce96e9dda7738499ed5f869d # 2026.11.14.1
+        uses: Homebrew/actions/git-user-config@61b401267256bb9c047d6d1481b176d5772a0ba7 # 2026.11.23.1
 
       - name: Test autobump helpers
         run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s .github/scripts -v
@@ -66,7 +66,7 @@ jobs:
       - name: Create repository-scoped publisher token
         if: steps.prepare.outputs.ready == 'true'
         id: publisher-token
-        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc # v3.4.0
         with:
           client-id: ${{ vars.HOMEBREW_TAP_UPDATER_APP_CLIENT_ID }}
           private-key: ${{ secrets.HOMEBREW_TAP_UPDATER_APP_PRIVATE_KEY }}
